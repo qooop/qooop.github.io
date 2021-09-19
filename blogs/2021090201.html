@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Static Docker遇到failed to start daemon: Devices cgroup isn&#39;t mounted | IT小土豆的学习历程</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="/logo.png">
+    <meta name="description" content="IT小土豆的个人工作学习经历的记录">
+    
+    <link rel="preload" href="/assets/css/0.styles.ad0b4674.css" as="style"><link rel="preload" href="/assets/js/app.5d07d0d5.js" as="script"><link rel="preload" href="/assets/js/3.de9f8ffa.js" as="script"><link rel="preload" href="/assets/js/2.cc26577c.js" as="script"><link rel="preload" href="/assets/js/13.122af466.js" as="script"><link rel="prefetch" href="/assets/js/10.a6f9b4ca.js"><link rel="prefetch" href="/assets/js/11.05c770a4.js"><link rel="prefetch" href="/assets/js/12.75875818.js"><link rel="prefetch" href="/assets/js/4.676b7959.js"><link rel="prefetch" href="/assets/js/5.bc8cebfa.js"><link rel="prefetch" href="/assets/js/6.f18e079a.js"><link rel="prefetch" href="/assets/js/7.2777c883.js"><link rel="prefetch" href="/assets/js/8.3870f728.js"><link rel="prefetch" href="/assets/js/9.7b00e7a5.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.ad0b4674.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="container" data-v-e0733c8c><header class="header" data-v-e0733c8c><div class="header-wrapper" data-v-e0733c8c><div class="nav" data-v-74d539e9 data-v-e0733c8c><div class="logo" data-v-74d539e9><img src="/logo.png" data-v-74d539e9> <span data-v-74d539e9>IT小土豆的成长历程</span></div> <div class="menu" data-v-74d539e9><div class="search" data-v-74d539e9><span data-v-74d539e9><div class="search-box" data-v-74d539e9><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div></span></div> <div class="links mdi" data-v-74d539e9><div class="links-wrapper" data-v-74d539e9><a href="/" data-v-74d539e9><i class="mdi mdi-home-outline" data-v-74d539e9></i>首页</a><a href="#" data-v-74d539e9><i class="mdi mdi-archive-outline" data-v-74d539e9></i>归档</a><a href="#" data-v-74d539e9><i class="mdi mdi-tag-outline" data-v-74d539e9></i>标签</a></div></div></div></div></div></header> <section class="main" data-v-e0733c8c><div class="article-mask" data-v-e0733c8c><div class="mask-wrapper" data-v-e0733c8c><div class="blog-info" data-v-e0733c8c><div class="title" data-v-e0733c8c>Static Docker遇到failed to start daemon: Devices cgroup isn't mounted</div> <div class="tags" data-v-e0733c8c><a href="#" class="tag" data-v-0aa1124b data-v-e0733c8c>docker</a></div></div></div></div> <article class="article" data-v-e0733c8c><div class="author" data-v-e0733c8c>qooop | 2020-09-02 08:23:34</div> <div class="content__default" data-v-e0733c8c><h1 id="static-docker遇到failed-to-start-daemon-devices-cgroup-isn-t-mounted">Static Docker遇到failed to start daemon: Devices cgroup isn't mounted</h1> <p>static docker指的是离线安装的docker，也就是绿色安装包，解压即可使用的软件包。</p> <p>下载地址：<a href="https://download.docker.com/linux/static/stable/x86_64/" target="_blank" rel="noopener noreferrer">https://download.docker.com/linux/static/stable/x86_64/<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <p>离线安装的docker没有挂载cgroup，所以启动时会报错。使用以下脚本可以解决：</p> <div class="language-shell line-numbers-mode"><pre class="language-shell"><code>
+<span class="token builtin class-name">set</span> -e   
+
+<span class="token keyword">if</span> <span class="token function">grep</span> -v <span class="token string">'^#'</span> /etc/fstab <span class="token operator">|</span> <span class="token function">grep</span> -q cgroup<span class="token punctuation">;</span> <span class="token keyword">then</span>
+	<span class="token builtin class-name">echo</span> <span class="token string">'cgroups mounted from fstab, not mounting /sys/fs/cgroup'</span>
+	<span class="token builtin class-name">exit</span> <span class="token number">0</span>
+<span class="token keyword">fi</span>
+
+<span class="token comment"># kernel provides cgroups?</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token operator">!</span> -e /proc/cgroups <span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+	<span class="token builtin class-name">exit</span> <span class="token number">0</span>
+<span class="token keyword">fi</span>
+
+<span class="token comment"># 确保目录存在</span>
+<span class="token keyword">if</span> <span class="token punctuation">[</span> <span class="token operator">!</span> -d /sys/fs/cgroup <span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+	<span class="token builtin class-name">exit</span> <span class="token number">0</span>
+<span class="token keyword">fi</span>
+
+<span class="token comment"># mount /sys/fs/cgroup if not already done</span>
+<span class="token keyword">if</span> <span class="token operator">!</span> mountpoint -q /sys/fs/cgroup<span class="token punctuation">;</span> <span class="token keyword">then</span>
+	<span class="token function">mount</span> -t tmpfs -o <span class="token assign-left variable">uid</span><span class="token operator">=</span><span class="token number">0</span>,gid<span class="token operator">=</span><span class="token number">0</span>,mode<span class="token operator">=</span>0755 cgroup /sys/fs/cgroup
+<span class="token keyword">fi</span>
+
+<span class="token builtin class-name">cd</span> /sys/fs/cgroup
+
+<span class="token comment"># get/mount list of enabled cgroup controllers</span>
+<span class="token keyword">for</span> <span class="token for-or-select variable">sys</span> <span class="token keyword">in</span> <span class="token variable"><span class="token variable">$(</span><span class="token function">awk</span> <span class="token string">'!/^#/ { if ($4 == 1) print $1 }'</span> /proc/cgroups<span class="token variable">)</span></span><span class="token punctuation">;</span> <span class="token keyword">do</span>
+	<span class="token function">mkdir</span> -p <span class="token variable">$sys</span>
+	<span class="token keyword">if</span> <span class="token operator">!</span> mountpoint -q <span class="token variable">$sys</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+		<span class="token keyword">if</span> <span class="token operator">!</span> <span class="token function">mount</span> -n -t cgroup -o <span class="token variable">$sys</span> cgroup <span class="token variable">$sys</span><span class="token punctuation">;</span> <span class="token keyword">then</span>
+			<span class="token function">rmdir</span> <span class="token variable">$sys</span> <span class="token operator">||</span> <span class="token boolean">true</span>
+		<span class="token keyword">fi</span>
+	<span class="token keyword">fi</span>
+<span class="token keyword">done</span>
+
+
+<span class="token builtin class-name">exit</span> <span class="token number">0</span>
+
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br></div></div><p>文章参考<a href="https://www.136.la/jingpin/show-184164.html" target="_blank" rel="noopener noreferrer">https://www.136.la/jingpin/show-184164.html<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p></div></article></section> <footer class="foot" data-v-e0733c8c><div class="foot-wrapper" data-v-e0733c8c><div class="copyright" data-v-e0733c8c>MIT @copyright 2021</div></div></footer></div><div class="global-ui"><!----><div class="toc-container" data-v-5774e241><!----></div></div></div>
+    <script src="/assets/js/app.5d07d0d5.js" defer></script><script src="/assets/js/3.de9f8ffa.js" defer></script><script src="/assets/js/2.cc26577c.js" defer></script><script src="/assets/js/13.122af466.js" defer></script>
+  </body>
+</html>
